@@ -7,18 +7,9 @@ import Player(playerPlay)
 players = 5
 
 game = do 
-    start
+    startPlayers
 
-start = for_ [1..players] play
+startPlayers = for_ [1..players] play
     where play i = do
-            putStrLn (" player " ++ show i)
+            putStrLn (" iniciando thread jugador " ++ show i)
             forkIO (playerPlay i)
-
-
-
---printMessagesFrom "hola"
-
-
---printMessagesFrom name = for_ [1..3] printMessage
-  --  where printMessage i = do
-     --       putStrLn (name ++ " number " ++ show i)
