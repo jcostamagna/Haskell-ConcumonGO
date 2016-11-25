@@ -1,13 +1,16 @@
 module Main where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, setNumCapabilities)
 import Game(game)
+
+
 
 main :: IO ()
 main = do
     putStrLn("Inicia el juego")
+    --setNumCapabilities 3
     game
-    sleepMs 30
+    sleepMs 40
     putStrLn("Termina el juego")
 
 
