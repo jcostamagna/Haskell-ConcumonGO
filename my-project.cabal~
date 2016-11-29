@@ -22,7 +22,6 @@ library
                      , text
                      , filepath
                      , containers
-                     , random
   default-language:    Haskell2010
 
 executable my-project-exe

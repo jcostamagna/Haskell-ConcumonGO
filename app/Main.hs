@@ -10,7 +10,7 @@ main = do
     putStrLn("Inicia el juego")
     --setNumCapabilities 3
     game
-    sleepMs 40
+    sleepMs 20
     putStrLn("Termina el juego")
 
 
