@@ -5,10 +5,12 @@ module Tablero
 , imprimirCelda
 , imprimirTablero
 , moverseACelda
+, dejarCelda
 ) where
 
 import Data.List (intercalate)
 import Control.Concurrent (ThreadId, myThreadId)
+
 
 data Celda =  Celda { 
 					jugador :: Bool,
@@ -42,3 +44,12 @@ moverseACelda tablero columna fila id =
 	take columna tablero ++
 	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {jugador = True, jugadorId = id}] ++ drop (fila + 1) (tablero !! columna)] ++
 	drop (columna + 1) tablero
+
+dejarCelda :: Tablero -> Int -> Int -> Tablero
+dejarCelda tablero columna fila = 
+	take columna tablero ++
+	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {jugador = False}] ++ drop (fila + 1) (tablero !! columna)] ++
+	drop (columna + 1) tablero
+	
+	
+

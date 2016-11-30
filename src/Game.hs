@@ -24,22 +24,23 @@ startPlayers shared = for_ [1..players] play
             putStrLn (" iniciando thread jugador " ++ show i)
             gen <- getStdGen;
             (columna, fila) <- posicionInicial gen shared i
-            forkIO (playerPlay i shared)
+            forkIO (playerPlay i shared columna fila)
             putStrLn (" Pos inicial  " ++ show columna ++ " " ++ show fila) 
 				  
-            
+           
+
 posicionInicial :: StdGen -> MVar Tablero -> Int -> IO (Int, Int)
 posicionInicial gen shared idJugador = do
 		    let (columna, newGen) = randomR (0, dimensionTablero-1) gen;
 		        (fila, gen2) = randomR (0, dimensionTablero-1) newGen;
-		    bool <- verificar columna fila shared idJugador
+		    bool <- verificarPos columna fila shared idJugador
 		    if bool
 				then return (columna,fila)
 				else posicionInicial gen2 shared idJugador
 		      
 		
-verificar :: Int -> Int -> MVar Tablero -> Int -> IO Bool
-verificar columna fila shared idJugador = do
+verificarPos :: Int -> Int -> MVar Tablero -> Int -> IO Bool
+verificarPos columna fila shared idJugador = do
     tablero <- takeMVar shared;
     putStrLn $ imprimirTablero $ tablero;
     let ocupado = jugador ((tablero !! columna) !! fila)
@@ -47,6 +48,3 @@ verificar columna fila shared idJugador = do
 		then putMVar shared (tablero);
 		else putMVar shared (moverseACelda tablero columna fila idJugador);
 	return (ocupado == False);
-    
-	
-
