@@ -6,10 +6,13 @@ module Tablero
 , imprimirTablero
 , moverseACelda
 , dejarCelda
+, moverseACeldaConcumon
+, dejarCeldaConcumon
 ) where
 
 import Data.List (intercalate)
 import Control.Concurrent (ThreadId, myThreadId)
+
 
 
 data Celda =  Celda { 
@@ -49,6 +52,19 @@ dejarCelda :: Tablero -> Int -> Int -> Tablero
 dejarCelda tablero columna fila = 
 	take columna tablero ++
 	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {jugador = False}] ++ drop (fila + 1) (tablero !! columna)] ++
+	drop (columna + 1) tablero
+	
+	
+moverseACeldaConcumon :: Tablero -> Int -> Int -> IO ThreadId -> Tablero
+moverseACeldaConcumon tablero columna fila id = 
+	take columna tablero ++
+	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {concumon = True, concumonId = id}] ++ drop (fila + 1) (tablero !! columna)] ++
+	drop (columna + 1) tablero
+
+dejarCeldaConcumon :: Tablero -> Int -> Int -> Tablero
+dejarCeldaConcumon tablero columna fila = 
+	take columna tablero ++
+	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {concumon = False}] ++ drop (fila + 1) (tablero !! columna)] ++
 	drop (columna + 1) tablero
 	
 	

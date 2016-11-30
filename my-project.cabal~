@@ -18,10 +18,12 @@ library
   exposed-modules:     Game
                      , Player
                      , Tablero
+                     , NidoConcumon
   build-depends:       base >= 4.7 && < 5
                      , text
                      , filepath
                      , containers
+                     , random
   default-language:    Haskell2010
 
 executable my-project-exe

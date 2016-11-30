@@ -11,7 +11,7 @@ main = do
     --setNumCapabilities 3
     game
     sleepMs 20
-    putStrLn("Termina el juego")
+    putStrLn("TERMINA LA SIMULACION")
 
 
 -- A utility function - threadDelay takes microseconds, which is slightly annoying.

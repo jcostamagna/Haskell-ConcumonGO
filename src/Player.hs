@@ -10,7 +10,6 @@ dimensionTablero = 5
 playerPlay id shared columna fila = jugar
 					where jugar = do 
 						(columnaNew, filaNew) <- jugadas id shared columna fila
-						--putStrLn("Jugador " ++ show id ++ " se movio a (" ++ show columnaNew ++ ", " ++ show filaNew ++ ")")
 						playerPlay id shared columnaNew filaNew
 						
 						
@@ -20,7 +19,7 @@ jugadas id shared columna fila = do
     sleepMs 2
     tablero <- takeMVar shared
     putStrLn("Jugador " ++ show id ++ " jugando")
-    gen <- getStdGen
+    gen <- newStdGen
     (columnaNew, filaNew) <- posicionNueva gen shared (dejarCelda tablero columna fila) id columna fila;
     putStrLn("Jugador " ++ show id ++ " termino turno: (" ++ show columna ++ ", " ++ show fila ++ ") ---> (" ++ show columnaNew ++ ", " ++ show filaNew ++ ")");
 	return (columnaNew, filaNew)
