@@ -8,6 +8,7 @@ module Tablero
 , dejarCelda
 , moverseACeldaConcumon
 , dejarCeldaConcumon
+, matarConcumon
 ) where
 
 import Data.List (intercalate)
@@ -16,10 +17,10 @@ import Control.Concurrent (ThreadId, myThreadId)
 
 
 data Celda =  Celda { 
-					jugador :: Bool,
-					jugadorId :: Int,
-					concumon :: Bool,
-					concumonId :: IO ThreadId
+                    jugador :: Bool,
+                    jugadorId :: Int,
+                    concumon :: Bool,
+                    concumonId :: IO ThreadId
 					}
 					
 imprimirCelda :: Celda -> String
@@ -53,7 +54,12 @@ dejarCelda tablero columna fila =
 	take columna tablero ++
 	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {jugador = False}] ++ drop (fila + 1) (tablero !! columna)] ++
 	drop (columna + 1) tablero
-	
+
+matarConcumon :: Tablero -> Int -> Int -> Tablero
+matarConcumon tablero columna fila = 
+	take columna tablero ++
+	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {concumon = False}] ++ drop (fila + 1) (tablero !! columna)] ++
+	drop (columna + 1) tablero
 	
 moverseACeldaConcumon :: Tablero -> Int -> Int -> IO ThreadId -> Tablero
 moverseACeldaConcumon tablero columna fila id = 

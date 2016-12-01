@@ -2,6 +2,7 @@ module Main where
 
 import Control.Concurrent (threadDelay, setNumCapabilities)
 import Game(game)
+import System.IO
 
 
 
@@ -10,7 +11,7 @@ main = do
     putStrLn("Inicia el juego")
     --setNumCapabilities 3
     game
-    sleepMs 20
+    c <- getChar
     putStrLn("TERMINA LA SIMULACION")
 
 

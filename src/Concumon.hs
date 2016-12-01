@@ -7,24 +7,39 @@ module Concumon
 import Control.Concurrent (threadDelay, putMVar, takeMVar, ThreadId, MVar, myThreadId)
 import Tablero
 import System.Random
-import Player (dimensionTablero)
+import Control.Exception
+import System.Timeout
+
+dimensionTablero = 5
+
+concumonPlay :: Int -> MVar Tablero -> IO ()
+concumonPlay id shared = do putStrLn ("Iniciando thread concumon " ++ show id)
+                            
+                            tablero <- takeMVar shared
+                            gen <- newStdGen;
+                            (columna, fila, tableroNuevo) <- posicionInicial gen tablero id
+                            putMVar shared (moverseACeldaConcumon tablero columna fila myThreadId)
+                            putStrLn ("Concumon: Pos inicial  " ++ show columna ++ " " ++ show fila)
+                            jugar id shared columna fila
 
 
-concumonPlay id shared columna fila = jugar
-					where jugar = do 
-						(columnaNew, filaNew) <- jugadas id shared columna fila
-						concumonPlay id shared columnaNew filaNew
+jugar id shared columna fila = do 
+           (columnaNew, filaNew) <- jugadas id shared columna fila
+           --sleepMs 30
+           jugar id shared columnaNew filaNew
 
 
 jugadas :: Int -> MVar Tablero -> Int -> Int -> IO (Int, Int)
 jugadas id shared columna fila = do
-    sleepMs 2
     tablero <- takeMVar shared
+    --sleepMs 150
+    putStrLn ("LLEGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     putStrLn("Concumon " ++ show id ++ " moviendose")
     gen <- newStdGen
     (columnaNew, filaNew) <- posicionNueva gen shared (dejarCeldaConcumon tablero columna fila) myThreadId columna fila;
     putStrLn("Concumon " ++ show id ++ " termino turno: (" ++ show columna ++ ", " ++ show fila ++ ") ---> (" ++ show columnaNew ++ ", " ++ show filaNew ++ ")");
 	return (columnaNew, filaNew)
+	
 	
 	
 posicionNueva :: StdGen -> MVar Tablero -> Tablero -> IO ThreadId -> Int -> Int -> IO (Int, Int)
@@ -41,7 +56,9 @@ posicionNueva gen shared tablero idConcumon columna fila = do
 		
 verificarPos :: Int -> Int -> MVar Tablero -> Tablero -> IO ThreadId -> IO Bool
 verificarPos columna fila shared tablero idConcumon = do
-    let ocupado = jugador ((tablero !! columna) !! fila) && concumon ((tablero !! columna) !! fila)
+    let ocupadoJug = jugador ((tablero !! columna) !! fila)
+        ocupadoCon = concumon ((tablero !! columna) !! fila)
+        ocupado = ocupadoJug || ocupadoCon
         tableroNuevo = moverseACeldaConcumon tablero columna fila idConcumon
     putStrLn("Concumon: Busco mudarme a (" ++ show columna ++ ", " ++ show fila ++ ")");
     if ocupado
@@ -55,10 +72,34 @@ verificarPos columna fila shared tablero idConcumon = do
     return (ocupado == False);
     
     
+posicionInicial :: StdGen -> Tablero -> Int -> IO (Int, Int, Tablero)
+posicionInicial gen tablero idJugador = do
+		    let (columna, newGen) = randomR (0, dimensionTablero-1) gen;
+		        (fila, gen2) = randomR (0, dimensionTablero-1) newGen;
+		    (bool, tableroNuevo) <- verificarPosInicial columna fila tablero myThreadId
+		    if bool
+				then return (columna,fila, tableroNuevo)
+				else posicionInicial gen2 tablero idJugador
+		      
+		
+verificarPosInicial :: Int -> Int -> Tablero -> IO ThreadId -> IO (Bool, Tablero)
+verificarPosInicial columna fila tablero idConcumon = do
+    let ocupado = jugador ((tablero !! columna) !! fila) || concumon ((tablero !! columna) !! fila)
+    if ocupado
+		then return (ocupado == False, tablero);
+		else return (ocupado == False, moverseACeldaConcumon tablero columna fila idConcumon); 
+    
+    
 sleepMs n = threadDelay (n * 1000)
     
     
-    
-    
+catchAny :: IO a -> (SomeException -> IO a) -> IO a
+catchAny = Control.Exception.catch
+
+dangerous :: IO Int
+dangerous = do
+    putStrLn "Succeeds this time, but takes some time"
+    threadDelay 10000
+    return 5
     
     
