@@ -1,6 +1,6 @@
 module Game where
 
-import Control.Concurrent (forkFinally, forkIO, threadDelay, newMVar, newEmptyMVar, killThread, newChan)
+import Control.Concurrent (forkFinally, forkIO, threadDelay, newMVar, newEmptyMVar, killThread, newChan, myThreadId)
 import Control.Concurrent.MVar
 import Data.Foldable (for_)
 import Player(playerPlay)
@@ -15,16 +15,15 @@ dimensionTablero = 5
 concumons = 2
 
 game = do{
-    putStrLn $ imprimirTablero $ tablero;
+    myId <- myThreadId;
     shared <- newEmptyMVar;
     score <- newChan;
     espera <- newEmptyMVar;
-	putMVar shared tablero;
+	putMVar shared $ crearTablero dimensionTablero myId;
 	forkFinally (startConcumons shared concumons espera) murioConcumon;
     startPlayers shared score;  
-    startSysadmin players score;
+    forkIO (startSysadmin players score);
     }
-    where tablero = crearTablero dimensionTablero;
 
 startPlayers shared score = for_ [1..players] play
     where play i = do

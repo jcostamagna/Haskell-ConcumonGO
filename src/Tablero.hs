@@ -20,7 +20,7 @@ data Celda =  Celda {
                     jugador :: Bool,
                     jugadorId :: Int,
                     concumon :: Bool,
-                    concumonId :: IO ThreadId
+                    concumonId :: ThreadId
 					}
 					
 imprimirCelda :: Celda -> String
@@ -40,8 +40,8 @@ imprimirTablero = intercalate "\n" . map imprimirCeldas
 
 
 					
-crearTablero :: Int -> Tablero
-crearTablero n = replicate n $ replicate n $ Celda False 0 False myThreadId
+crearTablero :: Int -> ThreadId -> Tablero
+crearTablero n id = replicate n $ replicate n $ Celda False 0 False id
 
 moverseACelda :: Tablero -> Int -> Int -> Int -> Tablero
 moverseACelda tablero columna fila id = 
@@ -61,7 +61,7 @@ matarConcumon tablero columna fila =
 	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {concumon = False}] ++ drop (fila + 1) (tablero !! columna)] ++
 	drop (columna + 1) tablero
 	
-moverseACeldaConcumon :: Tablero -> Int -> Int -> IO ThreadId -> Tablero
+moverseACeldaConcumon :: Tablero -> Int -> Int -> ThreadId -> Tablero
 moverseACeldaConcumon tablero columna fila id = 
 	take columna tablero ++
 	[take fila (tablero !! columna) ++ [((tablero !! columna) !! fila) {concumon = True, concumonId = id}] ++ drop (fila + 1) (tablero !! columna)] ++

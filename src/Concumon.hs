@@ -14,11 +14,10 @@ dimensionTablero = 5
 
 concumonPlay :: Int -> MVar Tablero -> IO ()
 concumonPlay id shared = do putStrLn ("Iniciando thread concumon " ++ show id)
-                            
                             tablero <- takeMVar shared
                             gen <- newStdGen;
-                            (columna, fila, tableroNuevo) <- posicionInicial gen tablero id
-                            putMVar shared (moverseACeldaConcumon tablero columna fila myThreadId)
+                            (columna, fila, tableroNuevo) <- posicionInicial gen tablero
+                            putMVar shared (tableroNuevo)
                             putStrLn ("Concumon: Pos inicial  " ++ show columna ++ " " ++ show fila)
                             jugar id shared columna fila
 
@@ -33,16 +32,16 @@ jugadas :: Int -> MVar Tablero -> Int -> Int -> IO (Int, Int)
 jugadas id shared columna fila = do
     tablero <- takeMVar shared
     --sleepMs 150
-    putStrLn ("LLEGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     putStrLn("Concumon " ++ show id ++ " moviendose")
     gen <- newStdGen
-    (columnaNew, filaNew) <- posicionNueva gen shared (dejarCeldaConcumon tablero columna fila) myThreadId columna fila;
+    idConcumon <- myThreadId
+    (columnaNew, filaNew) <- posicionNueva gen shared (dejarCeldaConcumon tablero columna fila) idConcumon columna fila;
     putStrLn("Concumon " ++ show id ++ " termino turno: (" ++ show columna ++ ", " ++ show fila ++ ") ---> (" ++ show columnaNew ++ ", " ++ show filaNew ++ ")");
 	return (columnaNew, filaNew)
 	
 	
 	
-posicionNueva :: StdGen -> MVar Tablero -> Tablero -> IO ThreadId -> Int -> Int -> IO (Int, Int)
+posicionNueva :: StdGen -> MVar Tablero -> Tablero -> ThreadId -> Int -> Int -> IO (Int, Int)
 posicionNueva gen shared tablero idConcumon columna fila = do
 		    let (columnaNew, newGen) = randomR (columna-1, columna+1) gen;
 		        (filaNew, gen2) = randomR (fila-1, fila+1) newGen;
@@ -54,7 +53,7 @@ posicionNueva gen shared tablero idConcumon columna fila = do
 				else posicionNueva gen2 shared tablero idConcumon columna fila
 		      
 		
-verificarPos :: Int -> Int -> MVar Tablero -> Tablero -> IO ThreadId -> IO Bool
+verificarPos :: Int -> Int -> MVar Tablero -> Tablero -> ThreadId -> IO Bool
 verificarPos columna fila shared tablero idConcumon = do
     let ocupadoJug = jugador ((tablero !! columna) !! fila)
         ocupadoCon = concumon ((tablero !! columna) !! fila)
@@ -72,17 +71,18 @@ verificarPos columna fila shared tablero idConcumon = do
     return (ocupado == False);
     
     
-posicionInicial :: StdGen -> Tablero -> Int -> IO (Int, Int, Tablero)
-posicionInicial gen tablero idJugador = do
+posicionInicial :: StdGen -> Tablero -> IO (Int, Int, Tablero)
+posicionInicial gen tablero = do
 		    let (columna, newGen) = randomR (0, dimensionTablero-1) gen;
 		        (fila, gen2) = randomR (0, dimensionTablero-1) newGen;
-		    (bool, tableroNuevo) <- verificarPosInicial columna fila tablero myThreadId
+		    idConcumon <- myThreadId
+		    (bool, tableroNuevo) <- verificarPosInicial columna fila tablero idConcumon
 		    if bool
 				then return (columna,fila, tableroNuevo)
-				else posicionInicial gen2 tablero idJugador
+				else posicionInicial gen2 tablero
 		      
 		
-verificarPosInicial :: Int -> Int -> Tablero -> IO ThreadId -> IO (Bool, Tablero)
+verificarPosInicial :: Int -> Int -> Tablero -> ThreadId -> IO (Bool, Tablero)
 verificarPosInicial columna fila tablero idConcumon = do
     let ocupado = jugador ((tablero !! columna) !! fila) || concumon ((tablero !! columna) !! fila)
     if ocupado

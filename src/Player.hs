@@ -63,13 +63,12 @@ verificarPos columna fila shared tablero idJugador score = do
     return (ocupado == False);
 
 
-terminarConcumon :: Int -> Bool -> IO ThreadId -> Chan (Int, IO ThreadId)  -> IO ()
+terminarConcumon :: Int -> Bool -> ThreadId -> Chan (Int, IO ThreadId)  -> IO ()
 terminarConcumon idJugador bool idConcumon score = do
 	if bool
 	    then do 
 	            putStrLn("Concumon atrapado por jugador " ++ show idJugador ++ "!");
-				concumon <- idConcumon;
-	            killThread concumon;
+	            killThread idConcumon;
 	            writeChan score (idJugador, myThreadId)
 	            return ();
 	    else return ()

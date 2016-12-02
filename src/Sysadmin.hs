@@ -20,7 +20,6 @@ mostrarPuntajes map score = do
                                let tabla = imprimirMap $ toList mapNew
                                putStrLn ("\nTabla de posiciones\n")
                                putStrLn tabla
-                               sleepMs 100
                                mostrarPuntajes mapNew score
                          
                          
