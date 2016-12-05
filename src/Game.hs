@@ -18,7 +18,7 @@ game = do{
     myId <- myThreadId;
     shared <- newEmptyMVar;
     score <- newChan;
-    espera <- newEmptyMVar;
+    espera <- newChan;
 	putMVar shared $ crearTablero dimensionTablero myId;
 	forkFinally (startConcumons shared concumons espera) murioConcumon;
     startPlayers shared score;  
