@@ -14,7 +14,7 @@ playerPlay id shared columna fila score = jugar
 						
 						
 
-jugadas :: Int -> MVar Tablero -> Int -> Int -> Chan (Int, IO ThreadId) -> IO (Int, Int)
+jugadas :: Int -> MVar Tablero -> Int -> Int -> Chan (Int, ThreadId, Int, Int) -> IO (Int, Int)
 jugadas id shared columna fila score = do
     
     tablero <- takeMVar shared
@@ -31,7 +31,7 @@ sleepMs n = threadDelay (n * 1000)
 
 -- sumar1 a  b = putMVar a b
 
-posicionNueva :: StdGen -> MVar Tablero -> Tablero -> Int -> Int -> Int -> Chan (Int, IO ThreadId) -> IO (Int, Int)
+posicionNueva :: StdGen -> MVar Tablero -> Tablero -> Int -> Int -> Int -> Chan (Int, ThreadId, Int, Int) -> IO (Int, Int)
 posicionNueva gen shared tablero idJugador columna fila score = do
 		    let (columnaNew, newGen) = randomR (columna-1, columna+1) gen;
 		        (filaNew, gen2) = randomR (fila-1, fila+1) newGen;
@@ -43,7 +43,7 @@ posicionNueva gen shared tablero idJugador columna fila score = do
 				else posicionNueva gen2 shared tablero idJugador columna fila score
 		      
 		
-verificarPos :: Int -> Int -> MVar Tablero -> Tablero -> Int -> Chan (Int, IO ThreadId) -> IO Bool
+verificarPos :: Int -> Int -> MVar Tablero -> Tablero -> Int -> Chan (Int, ThreadId, Int, Int) -> IO Bool
 verificarPos columna fila shared tablero idJugador score = do
     let ocupado = jugador ((tablero !! columna) !! fila)
         tableroNuevo = moverseACelda tablero columna fila idJugador
@@ -57,19 +57,20 @@ verificarPos columna fila shared tablero idJugador score = do
                 putStrLn("Tablero Inicio");
                 putStrLn $ imprimirTablero tableroFinal;
                 putStrLn ("Tablero Fin");
-                terminarConcumon idJugador hayConcumon idConcumon score;
+                terminarConcumon idJugador hayConcumon idConcumon score columna fila;
 		        putMVar shared tableroFinal;
 		        }
     return (ocupado == False);
 
 
-terminarConcumon :: Int -> Bool -> ThreadId -> Chan (Int, IO ThreadId)  -> IO ()
-terminarConcumon idJugador bool idConcumon score = do
+terminarConcumon :: Int -> Bool -> ThreadId -> Chan (Int, ThreadId, Int, Int) -> Int -> Int -> IO ()
+terminarConcumon idJugador bool idConcumon score columna fila = do
 	if bool
 	    then do 
 	            putStrLn("Concumon atrapado por jugador " ++ show idJugador ++ "!");
 	            killThread idConcumon;
-	            writeChan score (idJugador, myThreadId)
+	            myId <- myThreadId
+	            writeChan score (idJugador, myId, columna, fila)
 	            return ();
 	    else return ()
 

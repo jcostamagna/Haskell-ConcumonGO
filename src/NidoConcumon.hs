@@ -22,12 +22,11 @@ startConcumons shared concumons espera = for_ [1..] $ play shared concumons espe
 play :: MVar Tablero -> Int -> Chan Int -> Int -> IO ()
 play shared concumons espera i = do 
             forkFinally (concumonPlay i shared) $ murioConcumon espera          
-            sleepMs 1000
             if (i >= concumons)
                then do putStrLn ("Espero para crear mas concumons")
                        concumon <- readChan espera
-                       sleepMs 5
-               else do sleepMs 5
+                       sleepMs 1
+               else do sleepMs 1
 
 
 
