@@ -4,7 +4,7 @@ module Concumon
 
 
 
-import Control.Concurrent (threadDelay, putMVar, takeMVar, ThreadId, MVar, myThreadId)
+import Control.Concurrent
 import Tablero
 import System.Random
 import Control.Exception

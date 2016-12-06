@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Concurrent (threadDelay, setNumCapabilities)
+import Control.Concurrent (threadDelay, setNumCapabilities, forkIO, killThread)
 import Game(game)
 import System.IO
 
@@ -10,8 +10,9 @@ main :: IO ()
 main = do
     putStrLn("Inicia el juego")
     --setNumCapabilities 3
-    game
+    threadChildId <- forkIO game
     c <- getChar
+    killThread threadChildId
     putStrLn("TERMINA LA SIMULACION")
 
 

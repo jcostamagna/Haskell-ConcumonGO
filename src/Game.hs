@@ -1,6 +1,6 @@
 module Game where
 
-import Control.Concurrent (forkFinally, forkIO, threadDelay, newMVar, newEmptyMVar, killThread, newChan, myThreadId)
+import Control.Concurrent (forkFinally, forkIO, threadDelay, writeChan, newEmptyMVar, readChan, newChan, myThreadId, Chan)
 import Control.Concurrent.MVar
 import Data.Foldable (for_)
 import Player(playerPlay)
@@ -19,19 +19,25 @@ game = do{
     shared <- newEmptyMVar;
     score <- newChan;
     espera <- newChan;
+    esperaJugadores <- newChan;
 	putMVar shared $ crearTablero dimensionTablero myId;
-	forkFinally (startConcumons shared concumons espera) murioConcumon;
-    startPlayers shared score;  
-    forkIO (startSysadmin players score);
+	forkFinally (startConcumons shared concumons espera) murioNido;
+	forkIO (startSysadmin players score shared);
+    startPlayers shared score esperaJugadores;  
     }
 
-startPlayers shared score = for_ [1..players] play
+startPlayers shared score esperaJugadores = for_ [1..] play
     where play i = do
             putStrLn (" iniciando thread jugador " ++ show i)
             gen <- newStdGen;
             (columna, fila) <- posicionInicial gen shared i
-            forkIO (playerPlay i shared columna fila score)
-            putStrLn (" Pos inicial  " ++ show columna ++ " " ++ show fila) 
+            forkFinally (playerPlay i shared columna fila score) $ muereJugador esperaJugadores
+            putStrLn (" Pos inicial de Jugador  " ++ show i ++ " (" ++ show columna ++ ", " ++ show fila ++ ")")
+            if (i >= players)
+               then do putStrLn ("Espero para crear mas jugadores")
+                       jugador <- readChan esperaJugadores
+                       sleepMs 1 
+               else do sleepMs 1 
 				  
 posicionInicial :: StdGen -> MVar Tablero -> Int -> IO (Int, Int)
 posicionInicial gen shared idJugador = do
@@ -52,5 +58,11 @@ verificarPos columna fila shared idJugador = do
 		else putMVar shared (moverseACelda tablero columna fila idJugador);
 	return (ocupado == False);         
 
-murioConcumon :: Either SomeException a -> IO ()
-murioConcumon e = do putStrLn ("Murio Nido")
+murioNido :: Either SomeException a -> IO ()
+murioNido e = do putStrLn ("Murio Nido")
+
+muereJugador :: Chan Int -> Either SomeException a -> IO ()
+muereJugador esperaJugadores e = do putStrLn ("Murio Jugador")
+                                    writeChan esperaJugadores 0
+
+sleepMs n = threadDelay (n * 1000)
